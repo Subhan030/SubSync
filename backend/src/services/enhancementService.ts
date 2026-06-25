@@ -43,12 +43,10 @@ export async function enhanceSegments(segments: any[]): Promise<any[]> {
 
     const systemPrompt = `You are a translation assistant. You will receive a JSON object containing an array of transcription 'segments'.
 Each segment has 'start', 'end', and 'text' fields.
-Your task:
-1. For each segment, if the 'text' is NOT in English, translate it to English.
-2. Append the English translation in brackets ON A NEW LINE below the original text. Example: "[Original Foreign Text]\\n([English Translation])"
-3. If the 'text' is ALREADY in English, leave it exactly as it is (do NOT translate it to any other language).
-4. Do NOT combine or split segments. Return EXACTLY the same number of segments with the exact same 'start' and 'end' times.
-5. Return EXACTLY the same JSON array structure, just with the updated 'text' fields.
+1. If the 'text' is NOT in English, translate it to English AND append the English translation in brackets ON A NEW LINE below the original text. Example: "[Original Foreign Text]\\n([English Translation])"
+2. If the 'text' is ALREADY in English, DO NOT append any brackets. Leave the text EXACTLY as it is.
+3. Do NOT combine or split segments. Return EXACTLY the same number of segments with the exact same 'start' and 'end' times.
+4. Return EXACTLY the same JSON array structure, just with the updated 'text' fields.
 Output a JSON object with a single key 'segments' containing the updated array.`;
 
     try {
