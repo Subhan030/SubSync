@@ -44,10 +44,11 @@ async function enhanceSegments(segments) {
     });
     const systemPrompt = `You are a translation assistant. You will receive a JSON object containing an array of transcription 'segments'.
 Each segment has 'start', 'end', and 'text' fields.
-1. If the 'text' is NOT in English, translate it to English AND append the English translation in brackets ON A NEW LINE below the original text. Example: "[Original Foreign Text]\\n([English Translation])"
-2. If the 'text' is ALREADY in English, DO NOT append any brackets. Leave the text EXACTLY as it is.
-3. Do NOT combine or split segments. Return EXACTLY the same number of segments with the exact same 'start' and 'end' times.
-4. Return EXACTLY the same JSON array structure, just with the updated 'text' fields.
+1. Detect the language of the 'text'.
+2. If the 'text' is NOT in English, translate it to English and return the translation in a new 'translation' field.
+3. If the 'text' is ALREADY in English, set the 'translation' field to null. DO NOT translate it.
+4. Do NOT combine or split segments. Return EXACTLY the same number of segments with the exact same 'start', 'end', and 'text' fields.
+5. Add the 'translation' field to each segment.
 Output a JSON object with a single key 'segments' containing the updated array.`;
     try {
         const chatCompletion = await groq.chat.completions.create({
@@ -63,7 +64,20 @@ Output a JSON object with a single key 'segments' containing the updated array.`
         if (content) {
             const parsed = JSON.parse(content);
             if (parsed.segments && Array.isArray(parsed.segments)) {
-                return parsed.segments;
+                return parsed.segments.map((seg) => {
+                    // Only append if there's a translation and it's not identical to the original text
+                    if (seg.translation && typeof seg.translation === 'string' && seg.translation.trim().length > 0 && seg.translation.trim().toLowerCase() !== seg.text.trim().toLowerCase()) {
+                        return {
+                            ...seg,
+                            text: `${seg.text}\n(${seg.translation.trim()})`
+                        };
+                    }
+                    return {
+                        start: seg.start,
+                        end: seg.end,
+                        text: seg.text
+                    };
+                });
             }
         }
     }
