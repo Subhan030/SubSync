@@ -58,7 +58,7 @@ Output a JSON object with a single key 'segments' containing the updated array.`
             ],
             model: 'llama-3.1-8b-instant',
             temperature: 0.2,
-            max_tokens: 8000,
+            max_tokens: 4000,
             response_format: { type: 'json_object' }
         });
 
