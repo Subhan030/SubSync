@@ -1,12 +1,17 @@
-import Groq from 'groq-sdk';
-
-export async function enhanceTranscript(transcriptText: string): Promise<string> {
-    if (!transcriptText || transcriptText.trim() === '') return '';
-
-    const groq = new Groq({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.enhanceTranscript = enhanceTranscript;
+exports.enhanceSegments = enhanceSegments;
+const groq_sdk_1 = __importDefault(require("groq-sdk"));
+async function enhanceTranscript(transcriptText) {
+    if (!transcriptText || transcriptText.trim() === '')
+        return '';
+    const groq = new groq_sdk_1.default({
         apiKey: process.env.GROQ_API_KEY,
     });
-
     const systemPrompt = `You are an expert transcription editor. Your job is to clean up a raw transcript.
 Please apply the following rules:
 1. Remove all filler words (e.g., um, uh, ah).
@@ -15,7 +20,6 @@ Please apply the following rules:
 4. DO NOT change the overall meaning or tone of the text.
 5. MUST KEEP the text in its original language and script (e.g., if it is Hindi Devanagari, keep it Hindi Devanagari). DO NOT translate it.
 6. DO NOT add any conversational preamble or postscript (e.g., "Here is the corrected text:"). Output ONLY the final cleaned text.`;
-
     try {
         const chatCompletion = await groq.chat.completions.create({
             messages: [
@@ -25,22 +29,19 @@ Please apply the following rules:
             model: 'llama-3.1-8b-instant',
             temperature: 0.2,
         });
-
         return chatCompletion.choices[0]?.message?.content?.trim() || transcriptText.trim();
-    } catch (error: any) {
+    }
+    catch (error) {
         console.error("Groq Enhancement error:", error);
-
         return transcriptText.trim();
     }
 }
-
-export async function enhanceSegments(segments: any[]): Promise<any[]> {
-    if (!segments || segments.length === 0) return segments;
-
-    const groq = new Groq({
+async function enhanceSegments(segments) {
+    if (!segments || segments.length === 0)
+        return segments;
+    const groq = new groq_sdk_1.default({
         apiKey: process.env.GROQ_API_KEY,
     });
-
     const systemPrompt = `You are a translation assistant. You will receive a JSON object containing an array of transcription 'segments'.
 Each segment has 'start', 'end', and 'text' fields.
 Your task:
@@ -49,7 +50,6 @@ Your task:
 3. If the 'text' is ALREADY in English, leave it unchanged.
 4. Return EXACTLY the same JSON array structure, just with the updated 'text' fields.
 Output a JSON object with a single key 'segments' containing the updated array.`;
-
     try {
         const chatCompletion = await groq.chat.completions.create({
             messages: [
@@ -60,7 +60,6 @@ Output a JSON object with a single key 'segments' containing the updated array.`
             temperature: 0.2,
             response_format: { type: 'json_object' }
         });
-
         const content = chatCompletion.choices[0]?.message?.content;
         if (content) {
             const parsed = JSON.parse(content);
@@ -68,9 +67,9 @@ Output a JSON object with a single key 'segments' containing the updated array.`
                 return parsed.segments;
             }
         }
-    } catch (error: any) {
+    }
+    catch (error) {
         console.error("Groq Segments Enhancement error:", error);
     }
-
     return segments;
 }
